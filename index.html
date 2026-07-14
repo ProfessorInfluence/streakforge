@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StreakForge — Habit Streak Tracker</title>
+<meta name="description" content="Build unbreakable habits with a simple visual streak calendar." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d10; --panel:#14171b; --panel2:#1b1f24; --border:#262b31;
+    --text:#f4f5f6; --muted:#9aa3ad; --accent:#ff6a3d; --accent2:#ffb020;
+    --good:#3ddc84; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px;}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .btn{padding:10px 18px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text);transition:.15s;}
+  .btn:hover{border-color:#3a4048;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0b0d10;border:none;}
+  .btn-primary:hover{filter:brightness(1.08);}
+  h1{font-size:40px;line-height:1.1;margin:0 0 12px;font-weight:800;letter-spacing:-0.02em;}
+  .sub{color:var(--muted);font-size:17px;max-width:560px;margin:0 0 32px;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+  .add-row{display:flex;gap:10px;margin-bottom:20px;}
+  input[type=text]{flex:1;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--text);font-size:15px;}
+  input[type=text]:focus{outline:none;border-color:var(--accent);}
+  .habit{border-top:1px solid var(--border);padding:18px 0;}
+  .habit:first-child{border-top:none;padding-top:0;}
+  .habit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .habit-name{font-weight:600;font-size:16px;}
+  .streak-badge{font-size:13px;color:var(--good);font-weight:700;display:flex;align-items:center;gap:6px;}
+  .days{display:flex;gap:6px;flex-wrap:wrap;}
+  .day{width:28px;height:28px;border-radius:7px;background:var(--panel2);border:1px solid var(--border);cursor:pointer;transition:.1s;position:relative;}
+  .day:hover{border-color:var(--accent);}
+  .day.done{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;}
+  .day.locked{opacity:.35;cursor:not-allowed;}
+  .remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;}
+  .remove:hover{color:#ff6a6a;}
+  .empty{color:var(--muted);text-align:center;padding:40px 0;font-size:15px;}
+  .lock-note{font-size:13px;color:var(--accent2);margin-top:10px;}
+  .pro-banner{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#2a1a12,#241708);border:1px solid #3a2a18;border-radius:var(--radius);padding:20px 24px;margin-bottom:24px;}
+  .pro-banner h3{margin:0 0 4px;font-size:16px;}
+  .pro-banner p{margin:0;color:var(--muted);font-size:14px;}
+  .pro-badge{display:inline-flex;align-items:center;gap:6px;background:var(--good);color:#06210f;font-weight:700;font-size:12px;padding:5px 10px;border-radius:20px;}
+  footer{color:var(--muted);font-size:13px;text-align:center;margin-top:40px;}
+  footer a{color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span> StreakForge</div>
+    <div id="proStatus"></div>
+  </header>
+
+  <h1>Never break the chain.</h1>
+  <p class="sub">Track daily habits with a dead-simple visual streak calendar. Tap a day to mark it done. Free plan gets 3 habits and a 7-day view — go Pro to unlock unlimited habits, a 30-day view, and CSV export.</p>
+
+  <div id="proBanner" class="pro-banner" style="display:none;">
+    <div>
+      <h3>You're on StreakForge Pro 🎉</h3>
+      <p>Unlimited habits, 30-day view, and CSV export are unlocked.</p>
+    </div>
+    <span class="pro-badge">PRO ACTIVE</span>
+  </div>
+
+  <div class="panel">
+    <div class="add-row">
+      <input type="text" id="habitInput" placeholder="Add a habit, e.g. Drink 3L water" maxlength="40" />
+      <button class="btn btn-primary" onclick="addHabit()">Add habit</button>
+    </div>
+    <div id="habitList"></div>
+    <div id="emptyState" class="empty">No habits yet — add your first one above.</div>
+  </div>
+
+  <div class="panel" id="upgradePanel">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-weight:700;font-size:16px;margin-bottom:4px;">Upgrade to Pro — $5 one-time</div>
+        <div style="color:var(--muted);font-size:14px;">Unlimited habits · 30-day streak view · CSV export · lifetime, no subscription</div>
+      </div>
+      <a class="btn btn-primary" href="https://buy.stripe.com/bJe4gz1H406FfdffNS04802" id="upgradeBtn">Upgrade to Pro →</a>
+    </div>
+  </div>
+
+  <footer>Built with Perplexity Computer · Day 1 of the 30-day webapp challenge · <a href="#">Payments securely processed by Stripe</a></footer>
+</div>
+
+<script>
+const FREE_HABIT_LIMIT = 3;
+const FREE_DAY_VIEW = 7;
+const PRO_DAY_VIEW = 30;
+
+function isPro(){ return localStorage.getItem('streakforge_pro') === 'true'; }
+
+function setPro(){
+  localStorage.setItem('streakforge_pro','true');
+  render();
+}
+
+// Handle return from Stripe payment link (after_completion redirect appends session_id)
+(function checkProReturn(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('session_id')) {
+    setPro();
+    // clean the URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+})();
+
+function loadHabits(){
+  return JSON.parse(localStorage.getItem('streakforge_habits') || '[]');
+}
+function saveHabits(h){
+  localStorage.setItem('streakforge_habits', JSON.stringify(h));
+}
+
+function dateKey(offset){
+  const d = new Date();
+  d.setDate(d.getDate() - offset);
+  return d.toISOString().slice(0,10);
+}
+
+function addHabit(){
+  const input = document.getElementById('habitInput');
+  const name = input.value.trim();
+  if (!name) return;
+  const habits = loadHabits();
+  if (!isPro() && habits.length >= FREE_HABIT_LIMIT){
+    alert('Free plan is limited to ' + FREE_HABIT_LIMIT + ' habits. Upgrade to Pro for unlimited habits.');
+    return;
+  }
+  habits.push({ id: Date.now().toString(36), name, done: {} });
+  saveHabits(habits);
+  input.value = '';
+  render();
+}
+
+function removeHabit(id){
+  saveHabits(loadHabits().filter(h => h.id !== id));
+  render();
+}
+
+function toggleDay(habitId, key, locked){
+  if (locked) return;
+  const habits = loadHabits();
+  const h = habits.find(x => x.id === habitId);
+  if (!h) return;
+  h.done[key] = !h.done[key];
+  saveHabits(habits);
+  render();
+}
+
+function currentStreak(h){
+  let streak = 0;
+  for (let i = 0; i < 365; i++){
+    if (h.done[dateKey(i)]) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function render(){
+  const pro = isPro();
+  document.getElementById('proBanner').style.display = pro ? 'flex' : 'none';
+  document.getElementById('proStatus').innerHTML = pro ? '<span class="pro-badge">PRO</span>' : '';
+  document.getElementById('upgradePanel').style.display = pro ? 'none' : 'block';
+
+  const habits = loadHabits();
+  const list = document.getElementById('habitList');
+  const dayView = pro ? PRO_DAY_VIEW : FREE_DAY_VIEW;
+  document.getElementById('emptyState').style.display = habits.length ? 'none' : 'block';
+
+  list.innerHTML = habits.map(h => {
+    const streak = currentStreak(h);
+    let days = '';
+    for (let i = dayView - 1; i >= 0; i--){
+      const key = dateKey(i);
+      const done = !!h.done[key];
+      const label = new Date(key).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+      days += `<div class="day ${done ? 'done' : ''}" title="${label}" onclick="toggleDay('${h.id}','${key}',false)"></div>`;
+    }
+    return `
+      <div class="habit">
+        <div class="habit-head">
+          <div class="habit-name">${h.name}</div>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="streak-badge">🔥 ${streak} day${streak===1?'':'s'}</div>
+            <button class="remove" onclick="removeHabit('${h.id}')">Remove</button>
+          </div>
+        </div>
+        <div class="days">${days}</div>
+      </div>`;
+  }).join('');
+
+  if (!pro && habits.length >= FREE_HABIT_LIMIT){
+    document.getElementById('emptyState').insertAdjacentHTML('afterend','');
+  }
+}
+
+document.getElementById('habitInput').addEventListener('keydown', e => { if (e.key === 'Enter') addHabit(); });
+render();
+</script>
+</body>
+</html>
